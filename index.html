@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Law Empire: Visual Novel Edition</title>
+    <title>Law Empire: The Student Journey</title>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -39,119 +39,59 @@
             overflow: hidden;
         }
 
-        /* --- UI Layer (Stats) --- */
+        /* --- UI Layer --- */
         #top-bar {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 10px;
-            display: flex;
-            gap: 15px;
-            z-index: 10;
+            top: 0; left: 0; width: 100%; padding: 10px;
+            display: flex; gap: 15px; z-index: 10;
         }
 
         .stat-badge {
-            background: white;
-            border: 3px solid black;
-            padding: 5px 15px;
-            font-family: 'Bangers', cursive;
-            font-size: 1.2rem;
-            transform: skew(-10deg);
+            background: white; border: 3px solid black; padding: 5px 15px;
+            font-family: 'Bangers'; font-size: 1.2rem; transform: skew(-10deg);
             box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
         }
 
         /* --- Character Layer --- */
         #char-layer {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* 让点击穿透到背景 */
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            padding-bottom: 0px; 
+            position: absolute; bottom: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex; justify-content: space-between; align-items: flex-end;
         }
 
         .sprite {
-            height: 85%; /* 立绘高度 */
-            width: auto;
-            transition: all 0.3s ease;
+            height: 85%; width: auto; transition: all 0.3s ease;
+            position: absolute; bottom: -20px;
             filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
-            position: absolute;
-            bottom: -20px;
         }
 
-        /* 主角在左 */
-        #sprite-player {
-            left: -50px; 
-            z-index: 2;
-        }
+        #sprite-player { left: -50px; z-index: 2; }
+        #sprite-npc { right: -50px; z-index: 1; }
 
-        /* NPC在右 */
-        #sprite-npc {
-            right: -50px;
-            z-index: 1;
-        }
-
-        /* 谁不说话谁变暗 */
-        .dimmed {
-            filter: brightness(0.5) grayscale(0.8) !important;
-            transform: scale(0.95);
-        }
-
-        .speaking {
-            filter: brightness(1.1) drop-shadow(0 0 10px white) !important;
-            transform: scale(1.05);
-            z-index: 10 !important;
-        }
+        .dimmed { filter: brightness(0.5) grayscale(0.8) !important; transform: scale(0.95); }
+        .speaking { filter: brightness(1.1) drop-shadow(0 0 10px white) !important; transform: scale(1.05); z-index: 10 !important; }
 
         /* --- Dialogue Layer --- */
         #dialogue-layer {
-            position: absolute;
-            bottom: 20px;
-            left: 5%;
-            width: 90%;
-            height: 180px;
+            position: absolute; bottom: 20px; left: 5%; width: 90%; height: 180px;
             background: rgba(255, 255, 255, 0.95);
-            border: var(--border-thick);
-            border-radius: 10px;
+            border: var(--border-thick); border-radius: 10px;
             box-shadow: 10px 10px 0 rgba(0,0,0,0.8);
-            z-index: 20;
-            cursor: pointer; /* 提示可点击 */
-            display: flex;
-            flex-direction: column;
-            padding: 0;
+            z-index: 20; cursor: pointer;
+            display: flex; flex-direction: column;
         }
 
         #name-tag {
-            background: var(--comic-red);
-            color: white;
-            padding: 5px 30px;
-            font-family: 'Bangers';
-            font-size: 1.5rem;
-            border: var(--border-thick);
-            position: absolute;
-            top: -20px;
-            left: 20px;
-            transform: rotate(-2deg);
+            background: var(--comic-red); color: white; padding: 5px 30px;
+            font-family: 'Bangers'; font-size: 1.5rem; border: var(--border-thick);
+            position: absolute; top: -20px; left: 20px; transform: rotate(-2deg);
         }
 
-        #text-area {
-            padding: 30px 20px 20px 20px;
-            font-size: 1.3rem;
-            line-height: 1.5;
-            color: #222;
-        }
+        #text-area { padding: 30px 20px; font-size: 1.3rem; line-height: 1.5; color: #222; }
 
-        /* 跳动的箭头提示 */
         #click-indicator {
-            position: absolute;
-            bottom: 10px;
-            right: 20px;
-            font-size: 2rem;
-            color: var(--comic-red);
+            position: absolute; bottom: 10px; right: 20px;
+            font-size: 2rem; color: var(--comic-red);
             animation: bounce 1s infinite;
         }
 
@@ -159,191 +99,254 @@
 
         /* --- Choices Overlay --- */
         #choices-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 100;
-            display: none; /* 默认隐藏 */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            z-index: 100; display: none;
+            flex-direction: column; justify-content: center; align-items: center; gap: 20px;
         }
 
         .choice-btn {
-            background: white;
-            border: 4px solid black;
-            padding: 15px 40px;
-            font-family: 'Bangers';
-            font-size: 1.8rem;
-            width: 80%;
-            max-width: 600px;
-            cursor: pointer;
-            box-shadow: 10px 10px 0 black;
-            transition: transform 0.1s;
+            background: white; border: 4px solid black; padding: 15px 40px;
+            font-family: 'Bangers'; font-size: 1.5rem; width: 80%; max-width: 600px;
+            cursor: pointer; box-shadow: 10px 10px 0 black;
+            transition: transform 0.1s; text-align: left;
         }
 
-        .choice-btn:hover {
-            transform: translate(-4px, -4px);
-            background: var(--comic-yellow);
-            box-shadow: 14px 14px 0 black;
-        }
-
+        .choice-btn:hover { transform: translate(-4px, -4px); background: var(--comic-yellow); box-shadow: 14px 14px 0 black; }
+        
         /* --- End Screen --- */
         #end-screen {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #111;
-            color: white;
-            z-index: 200;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #111; color: white; z-index: 200;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
 
-        /* 手机适配 */
         @media (max-width: 600px) {
-            .sprite { height: 60%; }
-            #sprite-player { left: -80px; }
-            #sprite-npc { right: -80px; }
+            .sprite { height: 55%; }
+            #sprite-player { left: -60px; }
+            #sprite-npc { right: -60px; }
             #dialogue-layer { height: 220px; bottom: 10px; }
-            #text-area { font-size: 1rem; }
-            .choice-btn { font-size: 1.2rem; }
+            #text-area { font-size: 1.1rem; }
         }
-
     </style>
 </head>
 <body>
 
 <div id="game-window">
-    <!-- UI Stats -->
     <div id="top-bar">
         <div class="stat-badge" style="background:var(--comic-yellow)">ID: <span id="ui-name">???</span></div>
         <div class="stat-badge" style="background:white">LEGAL: <span id="ui-score">50</span></div>
     </div>
 
-    <!-- Characters -->
     <div id="char-layer">
-        <!-- 左边：永远是主角 -->
         <img id="sprite-player" class="sprite dimmed" src="" alt="Player">
-        <!-- 右边：NPC -->
         <img id="sprite-npc" class="sprite dimmed" src="" alt="NPC">
     </div>
 
-    <!-- Dialogue Box (点击此处触发选项) -->
     <div id="dialogue-layer" onclick="Game.handleClick()">
         <div id="name-tag">SYSTEM</div>
-        <div id="text-area">Initializing...</div>
+        <div id="text-area">Loading...</div>
         <div id="click-indicator">▼</div>
     </div>
 
-    <!-- Choices (全屏遮罩) -->
-    <div id="choices-overlay">
-        <!-- 按钮由 JS 生成 -->
-    </div>
+    <div id="choices-overlay"></div>
 
-    <!-- End Screen -->
     <div id="end-screen">
-        <h1 style="font-family:'Bangers'; font-size:4rem; color:var(--comic-yellow)">THE END</h1>
-        <p id="end-desc" style="max-width:600px; padding:20px; font-size:1.5rem"></p>
-        <button class="choice-btn" onclick="location.reload()">REPLAY</button>
+        <h1 id="end-title" style="font-family:'Bangers'; font-size:3rem; color:var(--comic-yellow)">THE END</h1>
+        <p id="end-desc" style="max-width:600px; padding:20px; font-size:1.2rem; line-height:1.6;"></p>
+        <button class="choice-btn" onclick="location.reload()" style="text-align:center;">PLAY AGAIN</button>
     </div>
 </div>
 
 <script>
 /* 
-   配置：这里的图片路径已经适配了你的 "images" 文件夹结构。
-   请确保你把图片放入 images 文件夹。
+   资源配置：
+   请确保你的 images 文件夹里有这些图片。
+   如果没有 professor.png，可以用 landlord.png 暂时顶替。
 */
 const ASSETS = {
     bg: {
         airport: "images/airport.jpg",
-        apt: "images/apartment.jpg",
-        restaurant: "images/burger_shop.jpg",
-        police: "images/night_street.jpg",
+        apt: "images/apt.jpg",
+        restaurant: "images/restaurant.jpg",
+        police: "images/police.jpg",
+        school: "images/school.jpg" // 新增场景
     },
     char: {
-        // 主角
         male: "images/hero_m.png",
         female: "images/hero_f.png",
-        // NPC
-        landlord: "images/boss_landlord.png",
-        manager: "images/boss_restaurant.png",
-        cop: "images/police_officer.png"
+        landlord: "images/landlord.png",
+        manager: "images/manager.png",
+        cop: "images/cop.png",
+        prof: "images/professor.png" // 新增角色 (如果没有图，请放一张命名为 professor.png)
     }
 };
 
-/* 剧情脚本 */
+/* 
+   剧情脚本 (STORY)
+   注意：target 指向下一个场景 ID。
+   如果是纯对话过渡，choices 留空，target 指向下一句对话。
+*/
 const STORY = {
+    // --- Prologue ---
     start: {
         bg: "airport",
         speaker: "System",
-        text: "Welcome to the USA! Tap anywhere to start your journey.",
-        action: "initChar", // 生成角色
-        choices: [
-            { text: "Let's Go!", target: "intro_housing" }
-        ]
+        text: "Welcome to the USA! You are an F-1 International Student.",
+        action: "initChar",
+        choices: [ { text: "Start My Journey", target: "intro_housing_1" } ]
     },
-    intro_housing: {
+
+    // --- Chapter 1: Housing (Security Deposit) ---
+    intro_housing_1: {
         bg: "apt",
-        npc: "landlord", // 显示在右侧的 NPC
-        speaker: "Landlord",
-        text: "Look, the heater is broken. I'm broke. Deal with it or buy your own heater.",
-        choices: [
-            { text: "I refuse to pay rent! (Withhold Rent)", target: "housing_bad", score: -20 },
-            { text: "I'll cite 'Warranty of Habitability' (Legal Notice)", target: "housing_good", score: 20 }
-        ]
+        npc: "landlord",
+        speaker: "You",
+        text: "Hi! I'm moving out today. Can I get my $2000 security deposit back?",
+        target: "intro_housing_2" // 点击对话框后跳转
     },
-    housing_bad: {
+    intro_housing_2: {
         bg: "apt",
         npc: "landlord",
         speaker: "Landlord",
-        text: "You can't just stop paying! That's illegal. Here is your Eviction Notice.",
-        choices: [{ text: "Oh no...", target: "intro_work" }]
+        text: "No way. The walls have 'faded paint' after 2 years. That's damage. I'm keeping the whole deposit to repaint.",
+        choices: [
+            { text: "Argue: Faded paint is 'Normal Wear and Tear', you can't charge for that!", target: "housing_win", score: 20 },
+            { text: "Give up: Okay... I guess I damaged it.", target: "housing_loss", score: -10 },
+            { text: "Threaten: I'll sue you for 3x damages in Small Claims Court!", target: "housing_aggressive", score: 10 }
+        ]
     },
-    housing_good: {
+    housing_win: {
         bg: "apt",
         npc: "landlord",
         speaker: "Landlord",
-        text: "Ugh, fine! You law students are annoying. I'll fix it tomorrow.",
-        choices: [{ text: "Justice served!", target: "intro_work" }]
+        text: "Ugh, you students know too much. Fine, I'll write the check.",
+        choices: [{ text: "Victory!", target: "intro_work_1" }]
     },
-    intro_work: {
+    housing_loss: {
+        bg: "apt",
+        npc: "landlord",
+        speaker: "System",
+        text: "You lost $2000 unnecessarily. Know your rights!",
+        choices: [{ text: "Ouch...", target: "intro_work_1" }]
+    },
+    housing_aggressive: {
+        bg: "apt",
+        npc: "landlord",
+        speaker: "Landlord",
+        text: "Whoa, relax! No need for court. Here is your money. Just go.",
+        choices: [{ text: "A bit risky, but it worked.", target: "intro_work_1" }]
+    },
+
+    // --- Chapter 2: Work (Unpaid Training) ---
+    intro_work_1: {
         bg: "restaurant",
         npc: "manager",
         speaker: "Manager",
-        text: "Hey, I need a dishwasher. Cash only. No taxes. Nobody needs to know.",
+        text: "You want a job here? Sure. But first, you must do 1 week of 'Unpaid Training' to prove yourself.",
         choices: [
-            { text: "Take the cash job (Illegal)", target: "work_bad", score: -50, flag: "illegal" },
-            { text: "Refuse, I'm on F-1 Visa", target: "work_good", score: 20 }
+            { text: "Accept: I need the experience!", target: "work_bad", score: -20 },
+            { text: "Refuse: Unpaid labor is illegal under FLSA for for-profit businesses.", target: "work_good", score: 20 },
+            { text: "Negotiate: Can I do CPT authorization for this?", target: "work_cpt", score: 10 }
         ]
     },
     work_bad: {
         bg: "restaurant",
         npc: "manager",
-        speaker: "System", // 旁白
-        text: "You worked illegally. It solved your money problem, but you violated your visa status.",
-        choices: [{ text: "Continue...", target: "check_ending" }]
+        speaker: "System",
+        text: "You worked for free. It was exploitative and arguably illegal.",
+        choices: [{ text: "Lesson learned.", target: "intro_police_1" }]
     },
     work_good: {
         bg: "restaurant",
         npc: "manager",
         speaker: "Manager",
-        text: "Your loss, kid.",
-        choices: [{ text: "Continue...", target: "check_ending" }]
+        text: "Tch. Fine, we start paying from hour one. You drive a hard bargain.",
+        choices: [{ text: "Know your worth!", target: "intro_police_1" }]
     },
+    work_cpt: {
+        bg: "restaurant",
+        npc: "manager",
+        speaker: "Manager",
+        text: "CPT? Too much paperwork. Next!",
+        choices: [{ text: "At least I stayed legal.", target: "intro_police_1" }]
+    },
+
+    // --- Chapter 3: Traffic Stop (Search & Seizure) ---
+    intro_police_1: {
+        bg: "police",
+        npc: "cop",
+        speaker: "Cop",
+        text: "(Knocks on window) Sir, I stopped you for a broken taillight. Do you mind if I search your trunk real quick?",
+        choices: [
+            { text: "Consent: Sure officer, I have nothing to hide.", target: "police_risky", score: -5 },
+            { text: "Refuse: Officer, I do not consent to any searches.", target: "police_smart", score: 25 },
+            { text: "Panic: Get out of the car and run!", target: "police_jail", score: -100, flag: "jail" }
+        ]
+    },
+    police_risky: {
+        bg: "police",
+        npc: "cop",
+        speaker: "System",
+        text: "He tore your car apart looking for nothing. You waived your 4th Amendment rights unnecessarily.",
+        choices: [{ text: "What a mess...", target: "intro_school_1" }]
+    },
+    police_smart: {
+        bg: "police",
+        npc: "cop",
+        speaker: "Cop",
+        text: "Alright. Without probable cause or a warrant, I can't force you. Fix that light.",
+        choices: [{ text: "Rights protected.", target: "intro_school_1" }]
+    },
+    police_jail: {
+        bg: "police",
+        npc: "cop",
+        speaker: "System",
+        text: "BAD IDEA. You are tackled and arrested.",
+        choices: [{ text: "Game Over...", target: "check_ending" }]
+    },
+
+    // --- Chapter 4: Academic (Integrity) ---
+    intro_school_1: {
+        bg: "school",
+        npc: "prof", // 需要 professor.png
+        speaker: "Professor",
+        text: "Turnitin flagged your essay as 40% AI-generated. I'm failing you immediately.",
+        choices: [
+            { text: "Admit it: I used ChatGPT...", target: "school_bad", score: -20 },
+            { text: "Fight it: I request a formal hearing. I have my version history.", target: "school_good", score: 30 },
+            { text: "Bribe: Can I buy you lunch?", target: "school_criminal", score: -50, flag: "bribe" }
+        ]
+    },
+    school_bad: {
+        bg: "school",
+        npc: "prof",
+        speaker: "System",
+        text: "You received an F and a mark on your transcript. Academic probation initiated.",
+        choices: [{ text: "My GPA...", target: "check_ending" }]
+    },
+    school_good: {
+        bg: "school",
+        npc: "prof",
+        speaker: "System",
+        text: "The Honor Council reviewed your Google Docs history and cleared you. You got an A-.",
+        choices: [{ text: "Due Process works!", target: "check_ending" }]
+    },
+    school_criminal: {
+        bg: "school",
+        npc: "prof",
+        speaker: "Professor",
+        text: "Are you trying to bribe a university official? That's a crime.",
+        choices: [{ text: "Oh no...", target: "check_ending" }]
+    },
+
+    // --- Logic ---
     check_ending: {
         action: "calculateEnd"
     }
 };
 
-/* 游戏引擎 */
+/* 游戏引擎 (Logic) */
 const Game = {
     state: {
         name: "",
@@ -351,11 +354,11 @@ const Game = {
         legalScore: 50,
         flags: [],
         currentSceneId: "start",
-        waitingForClick: false // 控制是否等待点击出现选项
+        waitingForClick: false
     },
 
     init: () => {
-        // 设置默认背景图占位 (如果加载失败显示灰色)
+        // Fallback color if bg fails
         document.getElementById('game-window').style.backgroundColor = "#555";
         Game.render("start");
     },
@@ -370,23 +373,23 @@ const Game = {
         const scene = STORY[sceneId];
         Game.state.currentSceneId = sceneId;
 
-        // 1. 执行特殊动作
+        // Action Check
         if (scene.action === "initChar") Game.initChar();
         if (scene.action === "calculateEnd") { Game.showEnding(); return; }
 
-        // 2. 背景设置
+        // 1. Background
         if (scene.bg && ASSETS.bg[scene.bg]) {
             document.getElementById("game-window").style.backgroundImage = `url('${ASSETS.bg[scene.bg]}')`;
         }
 
-        // 3. 角色立绘管理
+        // 2. Characters
         const pImg = document.getElementById("sprite-player");
         const nImg = document.getElementById("sprite-npc");
         
-        // 设置主角图片
+        // Player Sprite
         pImg.src = Game.state.gender === "m" ? ASSETS.char.male : ASSETS.char.female;
         
-        // 设置 NPC 图片
+        // NPC Sprite
         if (scene.npc && ASSETS.char[scene.npc]) {
             nImg.src = ASSETS.char[scene.npc];
             nImg.style.display = "block";
@@ -394,59 +397,58 @@ const Game = {
             nImg.style.display = "none";
         }
 
-        // 4. 谁在说话？(光影效果)
+        // 3. Speaking Focus
         const speaker = scene.speaker || "System";
         document.getElementById("name-tag").innerText = speaker;
         
-        // 简单的逻辑：如果说话人名字是 "System" 或 "You" 或 "Player"，则聚焦左边
-        // 否则聚焦右边
         if (speaker === "System") {
-             // 旁白，两人都暗
              pImg.className = "sprite dimmed";
              nImg.className = "sprite dimmed";
         } else if (speaker === "You" || speaker === Game.state.name) {
              pImg.className = "sprite speaking";
              nImg.className = "sprite dimmed";
         } else {
-             // NPC 说话
              pImg.className = "sprite dimmed";
              nImg.className = "sprite speaking";
         }
 
-        // 5. 文本
+        // 4. Text
         document.getElementById("text-area").innerText = scene.text;
 
-        // 6. 状态设置：等待玩家点击
+        // 5. Interaction State
         Game.state.waitingForClick = true;
-        document.getElementById("choices-overlay").style.display = "none"; // 隐藏选项
-        document.getElementById("click-indicator").style.display = "block"; // 显示箭头
+        document.getElementById("choices-overlay").style.display = "none";
+        document.getElementById("click-indicator").style.display = "block";
     },
 
-    // 玩家点击对话框的处理函数
     handleClick: () => {
         if (!Game.state.waitingForClick) return;
 
         const scene = STORY[Game.state.currentSceneId];
         
-        // 如果有选项，显示选项层
+        // A. If there are choices, show them
         if (scene.choices && scene.choices.length > 0) {
             Game.showChoices(scene.choices);
-            Game.state.waitingForClick = false; // 停止等待点击，转为等待选按钮
+            Game.state.waitingForClick = false;
             document.getElementById("click-indicator").style.display = "none";
+        } 
+        // B. If no choices but a 'target', treat as "Click to Continue"
+        else if (scene.target) {
+            Game.render(scene.target);
         }
     },
 
     showChoices: (choices) => {
         const overlay = document.getElementById("choices-overlay");
-        overlay.innerHTML = ""; // 清空旧按钮
-        overlay.style.display = "flex"; // 显示
+        overlay.innerHTML = ""; 
+        overlay.style.display = "flex";
 
         choices.forEach(c => {
             const btn = document.createElement("button");
             btn.className = "choice-btn";
             btn.innerText = c.text;
             btn.onclick = (e) => {
-                e.stopPropagation(); // 防止冒泡触发 handleClick
+                e.stopPropagation();
                 Game.makeChoice(c);
             };
             overlay.appendChild(btn);
@@ -454,14 +456,12 @@ const Game = {
     },
 
     makeChoice: (choice) => {
-        // 更新分数
         if (choice.score) {
             Game.state.legalScore += choice.score;
             document.getElementById("ui-score").innerText = Game.state.legalScore;
         }
         if (choice.flag) Game.state.flags.push(choice.flag);
 
-        // 下一幕
         if (choice.target) {
             Game.render(choice.target);
         }
@@ -469,25 +469,34 @@ const Game = {
 
     showEnding: () => {
         const screen = document.getElementById("end-screen");
+        const title = document.getElementById("end-title");
         const text = document.getElementById("end-desc");
         screen.style.display = "flex";
         
-        if (Game.state.flags.includes("illegal")) {
-            text.innerText = "BAD ENDING: DEPORTED.\nYou worked illegally and got caught.";
-            text.style.color = "var(--comic-red)";
-        } else if (Game.state.legalScore > 60) {
-            text.innerText = "GOOD ENDING: LAW EXPERT.\nYou protected your rights and stayed legal!";
-            text.style.color = "var(--comic-yellow)";
+        const score = Game.state.legalScore;
+        const flags = Game.state.flags;
+
+        if (flags.includes("jail") || flags.includes("bribe")) {
+            title.innerText = "CRIMINAL RECORD";
+            title.style.color = "var(--comic-red)";
+            text.innerText = "You made serious legal mistakes (Resisting arrest or Bribery). Your visa is revoked and you are facing deportation proceedings.";
+        } else if (score >= 80) {
+            title.innerText = "LEGAL EAGLE";
+            title.style.color = "var(--comic-yellow)";
+            text.innerText = "Incredible! You handled the Landlord, the Employer, the Police, and the University with perfect legal knowledge. You are destined for Law School!";
+        } else if (score >= 40) {
+            title.innerText = "SURVIVOR";
+            title.style.color = "#3498db";
+            text.innerText = "You made it to graduation, but you lost some money and dignity along the way. You need to study your rights more carefully next time.";
         } else {
-            text.innerText = "NORMAL ENDING: SURVIVED.\nYou made it, but it was a struggle.";
-            text.style.color = "white";
+            title.innerText = "DEPORTATION RISK";
+            title.style.color = "gray";
+            text.innerText = "You constantly waived your rights or broke minor laws. While not in jail, your record is messy, and renewing your visa will be very difficult.";
         }
     }
 };
 
-// Start
 window.onload = Game.init;
-
 </script>
 </body>
 </html>
