@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Law Empire: The F-1 Chronicles</title>
-    <!-- Comic Fonts -->
+    <title>Law Empire: Visual Novel Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,618 +11,168 @@
             --comic-yellow: #f1c40f;
             --comic-blue: #3498db;
             --comic-black: #2c3e50;
-            --comic-white: #ecf0f1;
             --border-thick: 4px solid var(--comic-black);
-            --shadow-hard: 6px 6px 0px var(--comic-black);
         }
-
-        * { box-sizing: border-box; }
 
         body {
             font-family: 'Comic Neue', sans-serif;
-            background-color: var(--comic-blue);
-            background-image: 
-                radial-gradient(var(--comic-white) 15%, transparent 16%),
-                radial-gradient(var(--comic-white) 15%, transparent 16%);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
+            background: #222;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
             overflow: hidden;
             user-select: none;
         }
 
-        #game-wrapper {
+        #game-window {
             width: 100%;
-            max-width: 900px;
-            height: 95vh;
-            max-height: 700px;
-            background: white;
-            border: var(--border-thick);
-            box-shadow: var(--shadow-hard);
-            display: flex;
-            flex-direction: column;
+            max-width: 1024px;
+            height: 100vh;
+            max-height: 768px;
             position: relative;
+            background-color: #333;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
             overflow: hidden;
         }
 
-        /* --- UI Components --- */
-        
-        /* Top Header */
-        header {
-            background: var(--comic-yellow);
-            border-bottom: var(--border-thick);
-            padding: 10px 20px;
+        /* --- UI Layer (Stats) --- */
+        #top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 15px;
             z-index: 10;
         }
 
-        h1 {
-            font-family: 'Bangers', cursive;
-            margin: 0;
-            font-size: 1.5rem;
-            letter-spacing: 1px;
-            text-shadow: 2px 2px 0 white;
-        }
-
-        .controls button {
-            background: var(--comic-red);
-            color: white;
-            border: 2px solid black;
-            font-family: 'Bangers', cursive;
-            cursor: pointer;
-            padding: 5px 10px;
-            margin-left: 5px;
-            box-shadow: 3px 3px 0 black;
-            transition: transform 0.1s;
-        }
-
-        .controls button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 black; }
-
-        /* Stats Bar */
-        #stats-bar {
-            display: flex;
-            gap: 15px;
-            padding: 10px;
+        .stat-badge {
             background: white;
-            border-bottom: var(--border-thick);
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .stat-tag {
-            background: var(--comic-black);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
+            border: 3px solid black;
+            padding: 5px 15px;
+            font-family: 'Bangers', cursive;
+            font-size: 1.2rem;
             transform: skew(-10deg);
-            display: inline-block;
-            margin-right: 5px;
-            font-family: 'Bangers', cursive;
-        }
-
-        /* Main Stage */
-        #stage {
-            flex: 1;
-            position: relative;
-            background-size: cover;
-            background-position: center;
-            transition: background-image 0.5s;
-            overflow: hidden;
-        }
-
-        /* Characters */
-        #char-img {
-            position: absolute;
-            bottom: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            height: 90%;
-            transition: all 0.3s ease;
-            filter: drop-shadow(4px 0 0 white) drop-shadow(-4px 0 0 white);
-            z-index: 1;
-        }
-
-        /* Comic Effects */
-        .pow-effect {
-            position: absolute;
-            font-family: 'Bangers', cursive;
-            font-size: 4rem;
-            color: var(--comic-red);
-            text-shadow: 3px 3px 0 black;
-            z-index: 20;
-            animation: popIn 0.6s ease-out forwards;
-            pointer-events: none;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
-            50% { transform: scale(1.2) rotate(10deg); opacity: 1; }
-            100% { transform: scale(1) rotate(0deg); opacity: 0; }
-        }
-
-        /* Dialogue Box */
-        #dialogue-box {
-            height: 220px;
-            background: white;
-            border-top: var(--border-thick);
-            padding: 20px;
-            position: relative;
-            background-image: linear-gradient(135deg, #f5f5f5 25%, transparent 25%), 
-                              linear-gradient(225deg, #f5f5f5 25%, transparent 25%), 
-                              linear-gradient(45deg, #f5f5f5 25%, transparent 25%), 
-                              linear-gradient(315deg, #f5f5f5 25%, transparent 25%);
-            background-position:  10px 0, 10px 0, 0 0, 0 0;
-            background-size: 20px 20px;
-            background-repeat: repeat;
-            z-index: 5;
-        }
-
-        #speaker-tag {
-            position: absolute;
-            top: -20px;
-            left: 20px;
-            background: var(--comic-yellow);
-            border: var(--border-thick);
-            padding: 5px 20px;
-            font-family: 'Bangers', cursive;
-            font-size: 1.4rem;
-            transform: rotate(-2deg);
             box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
         }
 
-        #text-content {
-            background: white;
-            border: 3px solid black;
-            border-radius: 15px;
-            padding: 15px;
-            min-height: 80px;
-            font-size: 1.2rem;
-            box-shadow: 5px 5px 0 #ddd;
-            margin-top: 10px;
+        /* --- Character Layer --- */
+        #char-layer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 让点击穿透到背景 */
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 0px; 
         }
 
-        /* Choices */
+        .sprite {
+            height: 85%; /* 立绘高度 */
+            width: auto;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+            position: absolute;
+            bottom: -20px;
+        }
+
+        /* 主角在左 */
+        #sprite-player {
+            left: -50px; 
+            z-index: 2;
+        }
+
+        /* NPC在右 */
+        #sprite-npc {
+            right: -50px;
+            z-index: 1;
+        }
+
+        /* 谁不说话谁变暗 */
+        .dimmed {
+            filter: brightness(0.5) grayscale(0.8) !important;
+            transform: scale(0.95);
+        }
+
+        .speaking {
+            filter: brightness(1.1) drop-shadow(0 0 10px white) !important;
+            transform: scale(1.05);
+            z-index: 10 !important;
+        }
+
+        /* --- Dialogue Layer --- */
+        #dialogue-layer {
+            position: absolute;
+            bottom: 20px;
+            left: 5%;
+            width: 90%;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.95);
+            border: var(--border-thick);
+            border-radius: 10px;
+            box-shadow: 10px 10px 0 rgba(0,0,0,0.8);
+            z-index: 20;
+            cursor: pointer; /* 提示可点击 */
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        #name-tag {
+            background: var(--comic-red);
+            color: white;
+            padding: 5px 30px;
+            font-family: 'Bangers';
+            font-size: 1.5rem;
+            border: var(--border-thick);
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            transform: rotate(-2deg);
+        }
+
+        #text-area {
+            padding: 30px 20px 20px 20px;
+            font-size: 1.3rem;
+            line-height: 1.5;
+            color: #222;
+        }
+
+        /* 跳动的箭头提示 */
+        #click-indicator {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 2rem;
+            color: var(--comic-red);
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* --- Choices Overlay --- */
         #choices-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.4);
-            display: none;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none; /* 默认隐藏 */
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-            z-index: 50;
-            backdrop-filter: blur(2px);
+            gap: 20px;
         }
 
         .choice-btn {
-            background: white;
-            border: var(--border-thick);
-            padding: 15px 30px;
-            width: 80%;
-            max-width: 500px;
-            font-family: 'Bangers', cursive;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 8px 8px 0 var(--comic-black);
-            transition: transform 0.1s, box-shadow 0.1s;
-            text-align: left;
-        }
-
-        .choice-btn:hover {
-            transform: translate(-3px, -3px);
-            background: var(--comic-yellow);
-            box-shadow: 11px 11px 0 var(--comic-black);
-        }
-
-        .choice-btn:active {
-            transform: translate(3px, 3px);
-            box-shadow: 2px 2px 0 var(--comic-black);
-        }
-
-        /* End Screen */
-        #end-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--comic-black);
-            color: white;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            z-index: 100;
-            padding: 40px;
-        }
-        
-        #end-title { font-family: 'Bangers'; font-size: 4rem; color: var(--comic-yellow); margin-bottom: 20px; }
-        #end-desc { font-size: 1.4rem; max-width: 600px; line-height: 1.6; }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            #game-wrapper { height: 100vh; max-height: none; border: none; }
-            h1 { font-size: 1rem; }
-            #dialogue-box { height: 250px; }
-            .choice-btn { font-size: 1.2rem; width: 90%; }
-        }
-    </style>
-</head>
-<body>
-
-<div id="game-wrapper">
-    <!-- Header -->
-    <header>
-        <h1>LAW EMPIRE: THE F-1 CHRONICLES</h1>
-        <div class="controls">
-            <button onclick="Game.save()">SAVE</button>
-            <button onclick="Game.load()">LOAD</button>
-            <button onclick="Game.toggleMusic()">🎵</button>
-        </div>
-    </header>
-
-    <!-- Stats -->
-    <div id="stats-bar">
-        <div><span class="stat-tag">ID</span> <span id="ui-name">...</span></div>
-        <div><span class="stat-tag">MAJOR</span> <span id="ui-major">...</span></div>
-        <div><span class="stat-tag" style="background:var(--comic-red)">LEGAL</span> <span id="ui-score">50</span></div>
-    </div>
-
-    <!-- Visual Stage -->
-    <div id="stage">
-        <div id="fx-layer"></div>
-        <img id="char-img" src="" alt="Character">
-        <div id="choices-overlay">
-            <!-- Buttons injected here -->
-        </div>
-    </div>
-
-    <!-- Dialogue -->
-    <div id="dialogue-box">
-        <div id="speaker-tag">SYSTEM</div>
-        <div id="text-content">Loading assets...</div>
-    </div>
-
-    <!-- End Screen -->
-    <div id="end-screen">
-        <div id="end-title">THE END</div>
-        <p id="end-desc"></p>
-        <button class="choice-btn" style="margin-top:30px" onclick="location.reload()">PLAY AGAIN</button>
-    </div>
-</div>
-
-<!-- Audio (Free assets) -->
-<audio id="bgm" loop>
-    <source src="https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=fun-punk-rock-126466.mp3" type="audio/mpeg">
-</audio>
-
-<script>
-/**
- * ASSETS & CONFIGURATION
- * Using placeholder images with text to simulate comic assets.
- */
-const ASSETS = {
-    bg: {
-        // 修改为你的文件名
-        airport: "images/airport.jpg", 
-        apt: "images/apartment.jpg",
-        restaurant: "images/burger_shop.jpg",
-        police: "images/night_street.jpg",
-        court: "images/school_office.jpg"
-    },
-    char: {
-        // 建议使用 PNG 透明底图片
-        male: "images/hero_m.png",
-        female: "images/hero_f.png",
-        landlord: "images/boss_landlord.png",
-        manager: "images/boss_restaurant.png",
-        cop: "images/police_officer.png"
-    }
-};
-
-/**
- * STORY DATA
- * Contains the script, choices, and legal consequences.
- */
-const STORY = {
-    start: {
-        bg: "airport",
-        speaker: "System",
-        text: "Welcome to the United States! Initializing F-1 Student Profile...",
-        action: "initChar",
-        choices: [
-            { text: "Start My American Journey", target: "intro_housing" }
-        ]
-    },
-    // --- SCENE 1: HOUSING ---
-    intro_housing: {
-        bg: "apt",
-        char: "landlord",
-        speaker: "Landlord",
-        text: "Yeah, I know the heating is broken. It's -10°C outside, but I'm broke. Buy a heater or deal with it. Don't bother me.",
-        choices: [
-            { text: "I'm not paying rent until you fix it! (Withhold Rent)", target: "housing_bad", score: -10 },
-            { text: "Okay, I'll buy a heater myself...", target: "housing_weak", score: 0 },
-            { text: "I'm sending a written notice citing 'Warranty of Habitability'.", target: "housing_good", score: 20 }
-        ]
-    },
-    housing_bad: {
-        bg: "apt",
-        speaker: "System",
-        text: "Bad Move! While the landlord is wrong, withholding rent without placing it in an escrow account is risky. You received an Eviction Notice.",
-        choices: [{ text: "This is starting badly...", target: "intro_work" }]
-    },
-    housing_weak: {
-        bg: "apt",
-        speaker: "System",
-        text: "You survived the cold, but your electricity bill is $500. You failed to exercise your tenant rights.",
-        choices: [{ text: "At least I have a room...", target: "intro_work" }]
-    },
-    housing_good: {
-        bg: "apt",
-        speaker: "Landlord",
-        text: "Fine! You know the law? I'll send a repairman tomorrow. Just don't report me to the city.",
-        choices: [{ text: "Knowledge is power!", target: "intro_work" }]
-    },
-
-    // --- SCENE 2: WORK (F-1 VISA) ---
-    intro_work: {
-        bg: "restaurant",
-        char: "manager",
-        speaker: "Manager Tony",
-        text: "Hey kid, we're short-staffed. Wash dishes for me? $15/hour, CASH only. No taxes, no paperwork. Nobody needs to know.",
-        choices: [
-            { text: "Yes! I need the money immediately.", target: "work_illegal", score: -50, flag: "illegal_work" },
-            { text: "No, my F-1 visa prohibits off-campus work without authorization.", target: "work_good", score: 20 },
-            { text: "Can I do CPT (Curricular Practical Training)?", target: "work_cpt", score: 10 }
-        ]
-    },
-    work_illegal: {
-        bg: "restaurant",
-        speaker: "System",
-        text: "You took the cash. It felt good, but you have now violated your F-1 status. If caught, it's instant deportation.",
-        choices: [{ text: "Hope I don't get caught...", target: "intro_police" }]
-    },
-    work_good: {
-        bg: "restaurant",
-        speaker: "Manager Tony",
-        text: "Boring. Fine, go find a library job.",
-        choices: [{ text: "Staying legal is priority #1.", target: "intro_police" }]
-    },
-    work_cpt: {
-        bg: "restaurant",
-        speaker: "Manager Tony",
-        text: "CPT? Too much paperwork for a dishwasher job. Get out of here.",
-        choices: [{ text: "At least I tried the legal route.", target: "intro_police" }]
-    },
-
-    // --- SCENE 3: TRAFFIC STOP ---
-    intro_police: {
-        bg: "police",
-        char: "cop",
-        speaker: "Police Officer",
-        text: "(Sirens wailing) You were driving 45 in a 30 zone. License and registration.",
-        choices: [
-            { text: "Get out of the car to explain clearly.", target: "police_bad", score: -30 },
-            { text: "Stay in car, hands on wheel, wait for instructions.", target: "police_good", score: 20 },
-            { text: "Argue that the sign was hidden.", target: "police_neutral", score: -5 }
-        ]
-    },
-    police_bad: {
-        bg: "police",
-        speaker: "System",
-        text: "DANGEROUS! The officer drew their weapon because you exited the vehicle unexpectedly. In the US, this is seen as a threat.",
-        choices: [{ text: "I'm shaking...", target: "check_ending" }]
-    },
-    police_good: {
-        bg: "police",
-        speaker: "Officer",
-        text: "Thank you for your cooperation. Here is a ticket. Drive safely.",
-        choices: [{ text: "Safe and sound.", target: "check_ending" }]
-    },
-    police_neutral: {
-        bg: "police",
-        speaker: "Officer",
-        text: "Tell it to the judge. Here's your ticket.",
-        choices: [{ text: "Ugh, fine.", target: "check_ending" }]
-    },
-
-    // --- LOGIC HANDLER ---
-    check_ending: {
-        action: "calculateEnd"
-    }
-};
-
-/**
- * GAME ENGINE
- */
-const Game = {
-    state: {
-        name: "Player",
-        gender: "m",
-        major: "Undeclared",
-        legalScore: 50,
-        flags: [],
-        currentScene: "start"
-    },
-
-    init: () => {
-        Game.renderScene("start");
-    },
-
-    // Generate random character
-    initChar: () => {
-        const majors = ["Computer Science", "Pre-Law", "Economics", "Fine Arts"];
-        const isMale = Math.random() > 0.5;
-        Game.state.gender = isMale ? "m" : "f";
-        Game.state.major = majors[Math.floor(Math.random() * majors.length)];
-        Game.state.name = "Student " + Math.floor(Math.random() * 1000);
-        
-        // Update UI
-        document.getElementById("ui-name").innerText = Game.state.name;
-        document.getElementById("ui-major").innerText = Game.state.major;
-        
-        // Return to intro flow
-        return true; 
-    },
-
-    renderScene: (sceneId) => {
-        const scene = STORY[sceneId];
-        Game.state.currentScene = sceneId;
-
-        // 1. Check for Actions (Functions)
-        if (scene.action) {
-            if (scene.action === "initChar") Game.initChar();
-            if (scene.action === "calculateEnd") {
-                Game.showEnding();
-                return;
-            }
-        }
-
-        // 2. Update Graphics
-        const stage = document.getElementById("stage");
-        const charImg = document.getElementById("char-img");
-        
-        // Background
-        if (scene.bg && ASSETS.bg[scene.bg]) {
-            stage.style.backgroundImage = `url('${ASSETS.bg[scene.bg]}')`;
-        }
-
-        // Character
-        if (scene.char) {
-            // Show NPC
-            charImg.src = ASSETS.char[scene.char];
-            charImg.style.display = "block";
-            charImg.style.filter = "drop-shadow(4px 0 0 white)"; 
-        } else if (scene.speaker === "System") {
-            // Hide Char
-            charImg.style.display = "none";
-        } else {
-            // Show Player
-            charImg.src = ASSETS.char[Game.state.gender === "m" ? "male" : "female"];
-            charImg.style.display = "block";
-        }
-
-        // 3. Update Text
-        document.getElementById("speaker-tag").innerText = scene.speaker || "???";
-        document.getElementById("text-content").innerText = scene.text;
-
-        // 4. Update Stats UI
-        document.getElementById("ui-score").innerText = Game.state.legalScore;
-
-        // 5. Generate Choices
-        const choiceOverlay = document.getElementById("choices-overlay");
-        choiceOverlay.innerHTML = ""; // Clear old
-        choiceOverlay.style.display = "flex";
-
-        if (scene.choices) {
-            scene.choices.forEach(choice => {
-                const btn = document.createElement("button");
-                btn.className = "choice-btn";
-                btn.innerText = choice.text;
-                btn.onclick = () => Game.makeChoice(choice);
-                choiceOverlay.appendChild(btn);
-            });
-        }
-    },
-
-    makeChoice: (choice) => {
-        // Apply Score
-        if (choice.score) {
-            Game.state.legalScore += choice.score;
-            Game.showFX(choice.score > 0 ? "LEGAL +!" : "ILLEGAL!", choice.score > 0 ? "green" : "red");
-        }
-        
-        // Apply Flags
-        if (choice.flag) {
-            Game.state.flags.push(choice.flag);
-        }
-
-        // Move to next
-        if (choice.target) {
-            Game.renderScene(choice.target);
-        }
-    },
-
-    showFX: (text, color) => {
-        const layer = document.getElementById("fx-layer");
-        const el = document.createElement("div");
-        el.className = "pow-effect";
-        el.innerText = text;
-        el.style.color = color === "red" ? "var(--comic-red)" : "#2ecc71";
-        el.style.left = (20 + Math.random() * 40) + "%";
-        el.style.top = (20 + Math.random() * 30) + "%";
-        layer.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
-    },
-
-    showEnding: () => {
-        const screen = document.getElementById("end-screen");
-        const title = document.getElementById("end-title");
-        const desc = document.getElementById("end-desc");
-        const score = Game.state.legalScore;
-        const flags = Game.state.flags;
-
-        screen.style.display = "flex";
-        document.getElementById("stage").style.filter = "grayscale(100%)";
-
-        // Logic
-        if (flags.includes("illegal_work") || score < 20) {
-            title.innerText = "ENDING 1: DEPORTED";
-            title.style.color = "var(--comic-red)";
-            desc.innerText = "You violated your F-1 Visa status by working illegally or ignoring laws. Immigration Customs Enforcement (ICE) has revoked your visa. Your American Dream ends here.";
-        } else if (score < 60) {
-            title.innerText = "ENDING 2: THE STRUGGLE";
-            title.style.color = "gray";
-            desc.innerText = "You graduated, but with a record of poor judgment in housing and civil matters. It's hard to find a sponsor for H1-B because background checks show red flags.";
-        } else {
-            title.innerText = "ENDING 3: LAW TYCOON";
-            title.style.color = "var(--comic-yellow)";
-            desc.innerText = "Amazing! You navigated the complex US legal system perfectly. You defended your rights as a tenant and maintained perfect immigration status. Top law firms are asking for your resume!";
-        }
-    },
-
-    save: () => {
-        localStorage.setItem("LawGameSave", JSON.stringify(Game.state));
-        alert("Game Saved!");
-    },
-
-    load: () => {
-        const data = localStorage.getItem("LawGameSave");
-        if (data) {
-            Game.state = JSON.parse(data);
-            Game.renderScene(Game.state.currentScene);
-            alert("Game Loaded!");
-        } else {
-            alert("No save found.");
-        }
-    },
-
-    toggleMusic: () => {
-        const bgm = document.getElementById("bgm");
-        if (bgm.paused) {
-            bgm.volume = 0.2;
-            bgm.play();
-        } else {
-            bgm.pause();
-        }
-    }
-};
-
-// Start Game
-window.onload = Game.init;
-
-</script>
-</body>
-</html>
+            background: wh
