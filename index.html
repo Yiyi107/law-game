@@ -175,4 +175,319 @@
         }
 
         .choice-btn {
-            background: wh
+            background: white;
+            border: 4px solid black;
+            padding: 15px 40px;
+            font-family: 'Bangers';
+            font-size: 1.8rem;
+            width: 80%;
+            max-width: 600px;
+            cursor: pointer;
+            box-shadow: 10px 10px 0 black;
+            transition: transform 0.1s;
+        }
+
+        .choice-btn:hover {
+            transform: translate(-4px, -4px);
+            background: var(--comic-yellow);
+            box-shadow: 14px 14px 0 black;
+        }
+
+        /* --- End Screen --- */
+        #end-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #111;
+            color: white;
+            z-index: 200;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* 手机适配 */
+        @media (max-width: 600px) {
+            .sprite { height: 60%; }
+            #sprite-player { left: -80px; }
+            #sprite-npc { right: -80px; }
+            #dialogue-layer { height: 220px; bottom: 10px; }
+            #text-area { font-size: 1rem; }
+            .choice-btn { font-size: 1.2rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-window">
+    <!-- UI Stats -->
+    <div id="top-bar">
+        <div class="stat-badge" style="background:var(--comic-yellow)">ID: <span id="ui-name">???</span></div>
+        <div class="stat-badge" style="background:white">LEGAL: <span id="ui-score">50</span></div>
+    </div>
+
+    <!-- Characters -->
+    <div id="char-layer">
+        <!-- 左边：永远是主角 -->
+        <img id="sprite-player" class="sprite dimmed" src="" alt="Player">
+        <!-- 右边：NPC -->
+        <img id="sprite-npc" class="sprite dimmed" src="" alt="NPC">
+    </div>
+
+    <!-- Dialogue Box (点击此处触发选项) -->
+    <div id="dialogue-layer" onclick="Game.handleClick()">
+        <div id="name-tag">SYSTEM</div>
+        <div id="text-area">Initializing...</div>
+        <div id="click-indicator">▼</div>
+    </div>
+
+    <!-- Choices (全屏遮罩) -->
+    <div id="choices-overlay">
+        <!-- 按钮由 JS 生成 -->
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen">
+        <h1 style="font-family:'Bangers'; font-size:4rem; color:var(--comic-yellow)">THE END</h1>
+        <p id="end-desc" style="max-width:600px; padding:20px; font-size:1.5rem"></p>
+        <button class="choice-btn" onclick="location.reload()">REPLAY</button>
+    </div>
+</div>
+
+<script>
+/* 
+   配置：这里的图片路径已经适配了你的 "images" 文件夹结构。
+   请确保你把图片放入 images 文件夹。
+*/
+const ASSETS = {
+    bg: {
+        airport: "images/airport.jpg",
+        apt: "images/apt.jpg",
+        restaurant: "images/restaurant.jpg",
+        police: "images/police.jpg",
+    },
+    char: {
+        // 主角
+        male: "images/hero_m.png",
+        female: "images/hero_f.png",
+        // NPC
+        landlord: "images/landlord.png",
+        manager: "images/manager.png",
+        cop: "images/cop.png"
+    }
+};
+
+/* 剧情脚本 */
+const STORY = {
+    start: {
+        bg: "airport",
+        speaker: "System",
+        text: "Welcome to the USA! Tap anywhere to start your journey.",
+        action: "initChar", // 生成角色
+        choices: [
+            { text: "Let's Go!", target: "intro_housing" }
+        ]
+    },
+    intro_housing: {
+        bg: "apt",
+        npc: "landlord", // 显示在右侧的 NPC
+        speaker: "Landlord",
+        text: "Look, the heater is broken. I'm broke. Deal with it or buy your own heater.",
+        choices: [
+            { text: "I refuse to pay rent! (Withhold Rent)", target: "housing_bad", score: -20 },
+            { text: "I'll cite 'Warranty of Habitability' (Legal Notice)", target: "housing_good", score: 20 }
+        ]
+    },
+    housing_bad: {
+        bg: "apt",
+        npc: "landlord",
+        speaker: "Landlord",
+        text: "You can't just stop paying! That's illegal. Here is your Eviction Notice.",
+        choices: [{ text: "Oh no...", target: "intro_work" }]
+    },
+    housing_good: {
+        bg: "apt",
+        npc: "landlord",
+        speaker: "Landlord",
+        text: "Ugh, fine! You law students are annoying. I'll fix it tomorrow.",
+        choices: [{ text: "Justice served!", target: "intro_work" }]
+    },
+    intro_work: {
+        bg: "restaurant",
+        npc: "manager",
+        speaker: "Manager",
+        text: "Hey, I need a dishwasher. Cash only. No taxes. Nobody needs to know.",
+        choices: [
+            { text: "Take the cash job (Illegal)", target: "work_bad", score: -50, flag: "illegal" },
+            { text: "Refuse, I'm on F-1 Visa", target: "work_good", score: 20 }
+        ]
+    },
+    work_bad: {
+        bg: "restaurant",
+        npc: "manager",
+        speaker: "System", // 旁白
+        text: "You worked illegally. It solved your money problem, but you violated your visa status.",
+        choices: [{ text: "Continue...", target: "check_ending" }]
+    },
+    work_good: {
+        bg: "restaurant",
+        npc: "manager",
+        speaker: "Manager",
+        text: "Your loss, kid.",
+        choices: [{ text: "Continue...", target: "check_ending" }]
+    },
+    check_ending: {
+        action: "calculateEnd"
+    }
+};
+
+/* 游戏引擎 */
+const Game = {
+    state: {
+        name: "",
+        gender: "m",
+        legalScore: 50,
+        flags: [],
+        currentSceneId: "start",
+        waitingForClick: false // 控制是否等待点击出现选项
+    },
+
+    init: () => {
+        // 设置默认背景图占位 (如果加载失败显示灰色)
+        document.getElementById('game-window').style.backgroundColor = "#555";
+        Game.render("start");
+    },
+
+    initChar: () => {
+        Game.state.gender = Math.random() > 0.5 ? "m" : "f";
+        Game.state.name = "Student-" + Math.floor(Math.random()*100);
+        document.getElementById("ui-name").innerText = Game.state.name;
+    },
+
+    render: (sceneId) => {
+        const scene = STORY[sceneId];
+        Game.state.currentSceneId = sceneId;
+
+        // 1. 执行特殊动作
+        if (scene.action === "initChar") Game.initChar();
+        if (scene.action === "calculateEnd") { Game.showEnding(); return; }
+
+        // 2. 背景设置
+        if (scene.bg && ASSETS.bg[scene.bg]) {
+            document.getElementById("game-window").style.backgroundImage = `url('${ASSETS.bg[scene.bg]}')`;
+        }
+
+        // 3. 角色立绘管理
+        const pImg = document.getElementById("sprite-player");
+        const nImg = document.getElementById("sprite-npc");
+        
+        // 设置主角图片
+        pImg.src = Game.state.gender === "m" ? ASSETS.char.male : ASSETS.char.female;
+        
+        // 设置 NPC 图片
+        if (scene.npc && ASSETS.char[scene.npc]) {
+            nImg.src = ASSETS.char[scene.npc];
+            nImg.style.display = "block";
+        } else {
+            nImg.style.display = "none";
+        }
+
+        // 4. 谁在说话？(光影效果)
+        const speaker = scene.speaker || "System";
+        document.getElementById("name-tag").innerText = speaker;
+        
+        // 简单的逻辑：如果说话人名字是 "System" 或 "You" 或 "Player"，则聚焦左边
+        // 否则聚焦右边
+        if (speaker === "System") {
+             // 旁白，两人都暗
+             pImg.className = "sprite dimmed";
+             nImg.className = "sprite dimmed";
+        } else if (speaker === "You" || speaker === Game.state.name) {
+             pImg.className = "sprite speaking";
+             nImg.className = "sprite dimmed";
+        } else {
+             // NPC 说话
+             pImg.className = "sprite dimmed";
+             nImg.className = "sprite speaking";
+        }
+
+        // 5. 文本
+        document.getElementById("text-area").innerText = scene.text;
+
+        // 6. 状态设置：等待玩家点击
+        Game.state.waitingForClick = true;
+        document.getElementById("choices-overlay").style.display = "none"; // 隐藏选项
+        document.getElementById("click-indicator").style.display = "block"; // 显示箭头
+    },
+
+    // 玩家点击对话框的处理函数
+    handleClick: () => {
+        if (!Game.state.waitingForClick) return;
+
+        const scene = STORY[Game.state.currentSceneId];
+        
+        // 如果有选项，显示选项层
+        if (scene.choices && scene.choices.length > 0) {
+            Game.showChoices(scene.choices);
+            Game.state.waitingForClick = false; // 停止等待点击，转为等待选按钮
+            document.getElementById("click-indicator").style.display = "none";
+        }
+    },
+
+    showChoices: (choices) => {
+        const overlay = document.getElementById("choices-overlay");
+        overlay.innerHTML = ""; // 清空旧按钮
+        overlay.style.display = "flex"; // 显示
+
+        choices.forEach(c => {
+            const btn = document.createElement("button");
+            btn.className = "choice-btn";
+            btn.innerText = c.text;
+            btn.onclick = (e) => {
+                e.stopPropagation(); // 防止冒泡触发 handleClick
+                Game.makeChoice(c);
+            };
+            overlay.appendChild(btn);
+        });
+    },
+
+    makeChoice: (choice) => {
+        // 更新分数
+        if (choice.score) {
+            Game.state.legalScore += choice.score;
+            document.getElementById("ui-score").innerText = Game.state.legalScore;
+        }
+        if (choice.flag) Game.state.flags.push(choice.flag);
+
+        // 下一幕
+        if (choice.target) {
+            Game.render(choice.target);
+        }
+    },
+
+    showEnding: () => {
+        const screen = document.getElementById("end-screen");
+        const text = document.getElementById("end-desc");
+        screen.style.display = "flex";
+        
+        if (Game.state.flags.includes("illegal")) {
+            text.innerText = "BAD ENDING: DEPORTED.\nYou worked illegally and got caught.";
+            text.style.color = "var(--comic-red)";
+        } else if (Game.state.legalScore > 60) {
+            text.innerText = "GOOD ENDING: LAW EXPERT.\nYou protected your rights and stayed legal!";
+            text.style.color = "var(--comic-yellow)";
+        } else {
+            text.innerText = "NORMAL ENDING: SURVIVED.\nYou made it, but it was a struggle.";
+            text.style.color = "white";
+        }
+    }
+};
+
+// Start
+window.onload = Game.init;
+
+</script>
+</body>
+</html>
